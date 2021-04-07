@@ -69,19 +69,19 @@ if(platform.system() == 'Windows'):
                 original_file.write(encrypted_version)
             
     elif(delenc_choice == 'decrypt'):
-        key = input('What is the decryption key? ')
-        keyfunc = Fernet(key)
+        key = input('What is the decryption key? ').encode()
+        key_obj = Fernet(key)
 
         print('Starting decyrption process...')
 
         for file in file_paths:
             with open(file, 'rb') as encrypted_file:
-                encrypted = encrypted_file.read()
+                encrypted_data = encrypted_file.read()
 
-            decrypted_version = keyfunc.decrypt(encrypted)
+            decrypted_data = key_obj.decrypt(encrypted_data)
 
             with open(file, 'wb') as encrypted_file:
-                encrypted_file.write(decrypted_version)
+                encrypted_file.write(decrypted_data)
         
 
 
@@ -140,19 +140,19 @@ if(platform.system() == 'Linux'):
 
 
     if(choice == 'decrypt'):
-        key = input('What is the decryption key? ')
+        key = input('What is the decryption key? ').encode()
         keyfunc = Fernet(key)
 
         print('Starting decyrption process...')
 
         for file in file_paths:
             with open(file, 'rb') as encrypted_file:
-                encrypted = encrypted_file.read()
+                encrypted_data = encrypted_file.read()
 
-            decrypted_version = keyfunc.decrypt(encrypted)
+            decrypted_data = keyfunc.decrypt(encrypted_data)
 
             with open(file, 'wb') as encrypted_file:
-                encrypted_file.write(decrypted_version)
+                encrypted_file.write(decrypted_data)
     
 
 
